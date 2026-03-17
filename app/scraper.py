@@ -1,5 +1,5 @@
 import logging
-from scrapling.fetchers import Fetcher, StealthyFetcher, PlayWrightFetcher
+from scrapling.fetchers import Fetcher, StealthyFetcher, DynamicFetcher
 from urllib.parse import urljoin
 from typing import Optional
 
@@ -19,7 +19,7 @@ def _parse_links(page, base_url: str) -> list[dict]:
 
 
 def extract_links(url: str, proxy: Optional[str] = None) -> tuple[list[dict], str]:
-    """Returns (links, fetcher_used). fetcher_used is 'basic', 'stealth', or 'browser'."""
+    """Returns (links, fetcher_used). fetcher_used is 'basic', 'stealth', or 'dynamic'."""
     try:
         page = Fetcher(auto_match=False).get(url, proxy=proxy)
         links = _parse_links(page, url)
@@ -40,7 +40,7 @@ def extract_links(url: str, proxy: Optional[str] = None) -> tuple[list[dict], st
     except Exception as e:
         logger.info("Stealth fetcher failed (%s), falling back to browser", e)
 
-    page = PlayWrightFetcher(auto_match=False).get(url, proxy=proxy)
+    page = DynamicFetcher(auto_match=False).get(url, proxy=proxy)
     links = _parse_links(page, url)
-    logger.info("Browser fetcher returned %d links", len(links))
-    return links, "browser"
+    logger.info("Dynamic fetcher returned %d links", len(links))
+    return links, "dynamic"
