@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScraplingWeb — Link Scraper</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>ScraplingWeb</h1>
+    <p class="subtitle">Extract all links from any webpage</p>
+
+    <form id="scrape-form">
+      <div class="input-row">
+        <input
+          type="url"
+          id="url-input"
+          placeholder="https://example.com"
+          required
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit" id="scrape-btn">Scrape</button>
+      </div>
+
+      <details class="advanced">
+        <summary>Advanced Options</summary>
+        <div class="advanced-body">
+          <label for="proxy-input">Proxy URL</label>
+          <input
+            type="text"
+            id="proxy-input"
+            placeholder="http://user:pass@host:port"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+      </details>
+    </form>
+
+    <div id="status-bar" class="status hidden"></div>
+
+    <section id="results-section" class="hidden">
+      <div class="results-header">
+        <span id="result-count"></span>
+        <button id="export-btn">Export CSV</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="links-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>URL</th>
+            </tr>
+          </thead>
+          <tbody id="links-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
