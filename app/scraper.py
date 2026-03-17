@@ -1,21 +1,61 @@
 import logging
 from scrapling.fetchers import Fetcher, StealthyFetcher, DynamicFetcher
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, urlunparse, parse_qsl, urlencode
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
+def _extract_title(anchor) -> str:
+    """Extract readable title from an anchor element using multiple strategies."""
+    # 1. All descendant text (handles <span>, <strong>, etc.)
+    all_text = ' '.join(anchor.css('::text').getall()).strip()
+    if all_text:
+        return ' '.join(all_text.split())  # normalize whitespace
+
+    # 2. Alt text from contained images
+    for img in anchor.css('img'):
+        alt = (img.attrib.get('alt') or '').strip()
+        if alt:
+            return alt
+
+    # 3. title or aria-label attribute on the anchor itself
+    for attr in ('title', 'aria-label'):
+        val = (anchor.attrib.get(attr) or '').strip()
+        if val:
+            return val
+
+    return ''
+
+
+def _normalize_url(url: str) -> str:
+    """Normalize a URL for deduplication."""
+    parsed = urlparse(url)
+    scheme = parsed.scheme.lower()
+    host = parsed.netloc.lower()
+    path = parsed.path.rstrip('/') or '/'
+    # Sort query parameters for consistent comparison
+    query = urlencode(sorted(parse_qsl(parsed.query)))
+    return urlunparse((scheme, host, path, parsed.params, query, ''))
+
+
 def _parse_links(page, base_url: str) -> list[dict]:
-    results = []
+    seen: dict[str, dict] = {}
     for anchor in page.css('a'):
         href = (anchor.attrib.get('href') or '').strip()
-        if not href or href.startswith(('#', 'javascript:')):
+        if not href or href.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
             continue
         abs_url = urljoin(base_url, href)
-        text = (anchor.text or '').strip() or abs_url
-        results.append({"title": text, "url": abs_url})
-    return results
+        key = _normalize_url(abs_url)
+        title = _extract_title(anchor) or abs_url
+        # On duplicate: prefer entry with a real title over URL-as-title
+        if key in seen:
+            existing = seen[key]
+            if existing['title'] == existing['url'] and title != abs_url:
+                existing['title'] = title
+            continue
+        seen[key] = {"title": title, "url": abs_url}
+    return list(seen.values())
 
 
 def extract_links(url: str, proxy: Optional[str] = None) -> tuple[list[dict], str]:
