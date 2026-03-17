@@ -32,9 +32,9 @@ async def scrape(req: ScrapeRequest):
     proxy = req.proxy.strip() if req.proxy and req.proxy.strip() else None
 
     try:
-        links = await anyio.to_thread.run_sync(
+        links, fetcher_used = await anyio.to_thread.run_sync(
             lambda: extract_links(url, proxy)
         )
-        return {"status": "ok", "count": len(links), "links": links}
+        return {"status": "ok", "count": len(links), "links": links, "fetcher": fetcher_used}
     except Exception as e:
         return {"status": "error", "message": str(e)}

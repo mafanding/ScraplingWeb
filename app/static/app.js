@@ -69,7 +69,10 @@ form.addEventListener('submit', async (e) => {
         showStatus('success', 'No links found on that page.');
         resultsSection.classList.add('hidden');
       } else {
-        showStatus('success', `Found ${count} link${count !== 1 ? 's' : ''}.`);
+        const fetcherLabel = data.fetcher === 'browser' ? ' (browser engine)'
+          : data.fetcher === 'stealth' ? ' (stealth browser)'
+          : ' (basic HTTP)';
+        showStatus('success', `Found ${count} link${count !== 1 ? 's' : ''}${fetcherLabel}.`);
         resultCount.textContent = `${count} link${count !== 1 ? 's' : ''}`;
         renderTable(currentLinks);
         resultsSection.classList.remove('hidden');
