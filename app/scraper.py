@@ -31,7 +31,7 @@ def extract_links(url: str, proxy: Optional[str] = None) -> tuple[list[dict], st
         logger.info("Basic fetcher failed (%s), falling back to stealth", e)
 
     try:
-        page = StealthyFetcher(auto_match=False).get(url, proxy=proxy)
+        page = StealthyFetcher(auto_match=False).fetch(url, proxy=proxy)
         links = _parse_links(page, url)
         if links:
             logger.info("Stealth fetcher succeeded (%d links)", len(links))
@@ -40,7 +40,7 @@ def extract_links(url: str, proxy: Optional[str] = None) -> tuple[list[dict], st
     except Exception as e:
         logger.info("Stealth fetcher failed (%s), falling back to browser", e)
 
-    page = DynamicFetcher(auto_match=False).get(url, proxy=proxy)
+    page = DynamicFetcher(auto_match=False).fetch(url, proxy=proxy)
     links = _parse_links(page, url)
     logger.info("Dynamic fetcher returned %d links", len(links))
     return links, "dynamic"
